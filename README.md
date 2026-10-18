@@ -1,5 +1,7 @@
 # StickBeat
 
+**Infoseite:** https://vrtomsky.github.io/Spotify-Downloader/
+
 Spotify-Link rein, getaggte MP3 raus, ab auf den USB-Stick. StickBeat läuft komplett auf deinem PC
 unter `http://127.0.0.1:5000`. Nichts wird irgendwo hochgeladen.
 

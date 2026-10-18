@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StickBeat – Spotify-Links als MP3 für deinen USB-Stick</title>
+  <meta name="description" content="StickBeat: lokale Web-App für Windows. Spotify-Link einfügen, getaggte MP3s mit Cover bekommen und sortiert auf den USB-Stick kopieren.">
+  <meta name="theme-color" content="#11100d">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23151310'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23332d25' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ffb020'/%3E%3Ccircle cx='16' cy='16' r='1.6' fill='%23151310'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="site/style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="StickBeat – nach oben">
+      <span class="disc" aria-hidden="true"></span>
+      <span>StickBeat</span>
+    </a>
+    <nav class="navlinks" aria-label="Seitenbereiche">
+      <a href="#funktionen">Funktionen</a>
+      <a href="#stick">USB-Stick</a>
+      <a href="#installation">Installation</a>
+      <a href="#ehrlich">Ehrlich</a>
+    </nav>
+    <a class="btn ghost small" href="https://github.com/VRTomsky/Spotify-Downloader">GitHub</a>
+  </header>
+
+  <main id="top">
+    <!-- HERO ------------------------------------------------------------------------>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Lokale Web-App für Windows · kostenlos · Open Source</p>
+        <h1>Deine Playlists.<br><span class="glow">Auf dem Stick.</span></h1>
+        <p class="lead">StickBeat macht aus Spotify-Links getaggte MP3s – mit Cover, Tracknummer und sauberer
+          Ordnerstruktur. Fertig für USB-Stick, Autoradio oder Plattenspieler mit USB-Anschluss.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/VRTomsky/Spotify-Downloader/archive/refs/heads/main.zip">Download (ZIP)</a>
+          <a class="btn ghost" href="#installation">So richtest du es ein</a>
+        </div>
+        <ul class="facts">
+          <li><span class="seg">320</span> kbps CBR</li>
+          <li><span class="seg">1000</span> px Cover</li>
+          <li><span class="seg">127.0.0.1</span> nur lokal</li>
+        </ul>
+      </div>
+
+      <div class="window" aria-label="Vorschau der StickBeat-Oberfläche (Beispieldaten)">
+        <div class="window-bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="url">127.0.0.1:5000</span>
+        </div>
+        <div class="window-body">
+          <div class="mk-top">
+            <span class="disc sm" aria-hidden="true"></span><b>StickBeat</b>
+            <span class="mk-tabs"><em class="on">Download</em><em>Gekaufte Musik</em><em>USB-Stick</em></span>
+          </div>
+          <div class="mk-input">
+            <span>open.spotify.com/playlist/…</span>
+            <span class="badge">Playlist</span>
+          </div>
+          <div class="mk-job">
+            <div class="mk-cover" aria-hidden="true"></div>
+            <div class="mk-main">
+              <div class="mk-row"><b>Sommer 2026</b><span class="badge" id="mkState">läuft</span></div>
+              <div class="mk-sub">Playlist · 24 Songs → D:\</div>
+              <div class="bar"><i id="mkBar"></i></div>
+              <div class="mk-meta">
+                <span class="seg" id="mkCount">06/24</span>
+                <span class="mk-now" id="mkNow">lädt: Midnight Drive – Neon Harbor</span>
+                <span class="mk-eta" id="mkEta">noch ~3 Min</span>
+              </div>
+            </div>
+          </div>
+          <ol class="mk-tracks" id="mkTracks"></ol>
+        </div>
+        <p class="window-note">Vorschau mit erfundenen Beispieldaten</p>
+      </div>
+    </section>
+
+    <!-- 3 SCHRITTE ------------------------------------------------------------------>
+    <section class="steps3" aria-label="So funktioniert es">
+      <article>
+        <span class="seg big">01</span>
+        <h3>Link einfügen</h3>
+        <p>In Spotify bei Song, Album oder Playlist auf <em>Teilen → Link kopieren</em> – und in StickBeat einfügen.
+          Ob Song, Album oder Playlist, erkennt StickBeat selbst.</p>
+      </article>
+      <article>
+        <span class="seg big">02</span>
+        <h3>StickBeat lädt &amp; taggt</h3>
+        <p>Infos kommen von Spotify, der passende Ton von YouTube Music. FFmpeg macht daraus MP3s, danach landen Titel,
+          Interpret, Album, Jahr und Cover in jeder Datei.</p>
+      </article>
+      <article>
+        <span class="seg big">03</span>
+        <h3>Ab auf den Stick</h3>
+        <p>Ordner auswählen, auf den Stick kopieren – sortiert in genau der Reihenfolge, die einfache Player abspielen.
+          Plus Spickzettel mit allen Ordner- und Titelnummern.</p>
+      </article>
+    </section>
+
+    <!-- FUNKTIONEN -------------------------------------------------------------------->
+    <section id="funktionen" class="section">
+      <p class="eyebrow">Funktionen</p>
+      <h2>Alles, was ein guter Stick braucht</h2>
+      <div class="grid">
+        <article class="feature"><span class="tag">ID3 + COVER</span><h3>Lückenlos getaggt</h3>
+          <p>Titel, Interpret, Album, Album-Interpret, Jahr, Track- und CD-Nummer, Genre, ISRC. Tags als ID3v2.3 plus ID3v1 –
+            liest auch alte Geräte. Cover in 1000 × 1000 px.</p></article>
+        <article class="feature"><span class="tag">320 KBPS CBR</span><h3>Wählbare Qualität</h3>
+          <p>128, 192, 256 oder 320 kbps mit konstanter Bitrate, 44,1 kHz Stereo. Bei jedem Song steht, was die Quelle
+            wirklich hatte.</p></article>
+        <article class="feature"><span class="tag">LIVE</span><h3>Fortschritt in Echtzeit</h3>
+          <p>Balken, aktueller Song, Restzeit und Zähler für fertig, übersprungen und fehlgeschlagen – live aktualisiert.</p></article>
+        <article class="feature"><span class="tag">PLAYLISTS</span><h3>Ganze Playlists am Stück</h3>
+          <p>Songs, Alben, Playlists und deine Lieblingssongs. Ein Fehler stoppt nie den Rest, vorhandene Songs werden
+            übersprungen.</p></article>
+        <article class="feature"><span class="tag">RETRY</span><h3>Fehlerliste mit zweiter Chance</h3>
+          <p>Fehlgeschlagene Songs einzeln nochmal laden – oder mit einem eigenen YouTube-Link, wenn der Treffer nicht passt.</p></article>
+        <article class="feature"><span class="tag">ORDNER</span><h3>Klare Struktur</h3>
+          <p><code>Interpret/Album/01 - Titel.mp3</code> oder ein eigener Ordner pro Playlist in Original-Reihenfolge.
+            Dateinamen sind FAT32-sicher.</p></article>
+        <article class="feature"><span class="tag">LEGAL</span><h3>Gekaufte Musik importieren</h3>
+          <p>DRM-freie Käufe von Bandcamp &amp; Co. übernehmen: MP3s bleiben unverändert, FLAC und WAV werden zu MP3,
+            fehlende Tags und Cover werden ergänzt.</p></article>
+        <article class="feature"><span class="tag">BOT-SCHUTZ</span><h3>Erkennt YouTube-Sperren</h3>
+          <p>Wenn YouTube „Bist du ein Bot?“ fragt, pausiert StickBeat statt weiter anzuklopfen – und sagt dir, was hilft.</p></article>
+        <article class="feature"><span class="tag">PRIVAT</span><h3>100 % lokal</h3>
+          <p>Läuft nur auf deinem PC unter 127.0.0.1. Keine Konten bei StickBeat, kein Server, nichts wird hochgeladen.</p></article>
+      </div>
+    </section>
+
+    <!-- USB-STICK ----------------------------------------------------------------------->
+    <section id="stick" class="section split">
+      <div>
+        <p class="eyebrow">Für den Stick gemacht</p>
+        <h2>Reihenfolge, die dein Player versteht</h2>
+        <p>Einfache MP3-Player spielen Ordner und Titel in der Reihenfolge, in der sie auf den Stick geschrieben wurden –
+          nicht alphabetisch. StickBeat kopiert deshalb streng sortiert, Datei für Datei, und prüft vorher Dateisystem und
+          freien Platz.</p>
+        <ul class="ticks">
+          <li><strong>Ein Ordner pro Album oder Playlist</strong> – die Ordner-Taste springt genau ein Album weiter.</li>
+          <li><strong>Spickzettel:</strong> Viele Geräte zeigen nur Nummern. StickBeat schreibt eine <code>INHALT.txt</code>
+            mit allen Ordner- und Titelnummern auf den Stick – auch zum Ausdrucken.</li>
+          <li><strong>FAT32-Check:</strong> warnt, wenn der Stick ein Format hat, das ältere Player nicht lesen.</li>
+        </ul>
+      </div>
+      <div class="lcd" aria-label="Beispiel einer Inhaltsliste">
+        <div class="lcd-head"><span class="seg">USB</span><span class="seg">03 – 041</span></div>
+        <div class="lcd-list">
+          <p><span class="seg">01</span> Neon Harbor - Night Shift</p>
+          <p class="sub"><span class="seg">001</span> Midnight Drive</p>
+          <p class="sub"><span class="seg">002</span> Salt &amp; Static</p>
+          <p><span class="seg">02</span> Sommer 2026</p>
+          <p class="sub"><span class="seg">001</span> Mira Vale - Golden Hour Loop</p>
+          <p class="sub"><span class="seg">002</span> Kiezfunk - Sommerloch</p>
+          <p><span class="seg">03</span> Die Kassetten - Bremen bei Nacht</p>
+        </div>
+        <p class="lcd-note">INHALT.txt – Beispiel</p>
+      </div>
+    </section>
+
+    <!-- INSTALLATION -------------------------------------------------------------------->
+    <section id="installation" class="section">
+      <p class="eyebrow">Installation · Windows 10/11</p>
+      <h2>In zehn Minuten startklar</h2>
+      <ol class="install">
+        <li>
+          <h3>Werkzeuge installieren (einmalig)</h3>
+          <p>Startmenü öffnen, <code>cmd</code> tippen, <strong>Eingabeaufforderung</strong> öffnen. Diese drei Zeilen
+            nacheinander eingeben, jeweils mit Enter:</p>
+          <div class="code"><pre><code>winget install Python.Python.3.13
+winget install Gyan.FFmpeg
+winget install OpenJS.NodeJS.LTS</code></pre><button class="copy" type="button">Kopieren</button></div>
+          <p class="hint">Python ist die Sprache von StickBeat, FFmpeg wandelt in MP3 um, Node.js braucht der YouTube-Download.</p>
+        </li>
+        <li>
+          <h3>StickBeat herunterladen</h3>
+          <p><a href="https://github.com/VRTomsky/Spotify-Downloader/archive/refs/heads/main.zip">ZIP herunterladen</a>,
+            Rechtsklick → <em>Alle extrahieren</em>. Den Ordner kannst du hinlegen, wo du willst.</p>
+          <p class="hint">Warnt Windows beim ersten Start („Der Computer wurde geschützt“)? <em>Weitere Informationen →
+            Trotzdem ausführen</em>. Das kommt bei allen heruntergeladenen Skripten.</p>
+        </li>
+        <li>
+          <h3><code>start.bat</code> doppelklicken</h3>
+          <p>Beim ersten Start richtet sich StickBeat selbst ein (1–2 Minuten, braucht Internet). Danach öffnet sich der
+            Browser mit <code>http://127.0.0.1:5000</code>. Das schwarze Fenster offen lassen – schließen beendet StickBeat.</p>
+        </li>
+        <li>
+          <h3>Optional: Spotify verbinden</h3>
+          <p>Ohne Verbindung klappt alles, fremde Playlists aber nur bis 100 Songs. Mit Verbindung gibt es deine Playlists
+            komplett und deine Lieblingssongs. Spotify verlangt dafür seit 2026 ein Premium-Abo. Die Schritt-für-Schritt-Anleitung
+            steht in StickBeat unter <em>Einstellungen</em> und in der
+            <a href="https://github.com/VRTomsky/Spotify-Downloader#3-spotify-verbinden-einmalig-braucht-premium">README</a>.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- EHRLICH ----------------------------------------------------------------------------->
+    <section id="ehrlich" class="section">
+      <p class="eyebrow">Ehrlich gesagt</p>
+      <h2>Was du wissen solltest</h2>
+      <div class="grid two">
+        <article class="feature"><span class="tag">QUALITÄT</span><h3>320 kbps ≠ besser als die Quelle</h3>
+          <p>YouTube Music liefert meist 130–160 kbps. Die MP3 ist echte 320 kbps und verlustarm umgewandelt – klingt aber
+            nicht besser als die Quelle. Echte Studioqualität gibt es nur mit gekauften Dateien.</p></article>
+        <article class="feature"><span class="tag">RECHT</span><h3>Grauzone – nur privat</h3>
+          <p>StickBeat knackt keinen Spotify-Kopierschutz, der Ton kommt von YouTube. Die Privatkopie (§ 53 UrhG) erlaubt
+            private Kopien, das Umgehen technischer Schutzmaßnahmen (§ 95a UrhG) und die YouTube-Regeln nicht. Dateien niemals
+            weitergeben oder hochladen. Klar legal: gekaufte, DRM-freie Musik.</p></article>
+        <article class="feature"><span class="tag">SPOTIFY</span><h3>Regeln seit 2026</h3>
+          <p>Die Spotify-Schnittstelle braucht Premium und gibt Playlist-Inhalte nur für eigene Playlists heraus. Fremde
+            Playlists liest StickBeat über die öffentliche Einbettung (max. 100 Songs) – Tipp: in eine eigene Playlist kopieren.</p></article>
+        <article class="feature"><span class="tag">YOUTUBE</span><h3>Manchmal sperrt YouTube</h3>
+          <p>Nach vielen Downloads fragt YouTube „Bist du ein Bot?“. Dann hilft Router neu verbinden, ein paar Stunden warten
+            oder die optionale YouTube-Anmeldung in den Einstellungen.</p></article>
+      </div>
+    </section>
+
+    <!-- FAQ ----------------------------------------------------------------------------------->
+    <section class="section faq">
+      <p class="eyebrow">Fragen</p>
+      <h2>Kurz beantwortet</h2>
+      <details><summary>Warum kann ich StickBeat nicht direkt hier auf der Webseite benutzen?</summary>
+        <p>Diese Seite liegt auf GitHub Pages und kann nur Text und Bilder zeigen. StickBeat braucht für Download,
+          MP3-Umwandlung und das Kopieren auf den Stick ein Programm auf deinem PC – deshalb läuft es lokal unter
+          127.0.0.1.</p></details>
+      <details><summary>Läuft das auch auf Mac oder Handy?</summary>
+        <p>StickBeat ist für Windows gebaut (getestet unter Windows 11). Mac und Linux sind nicht getestet, Handys werden
+          nicht unterstützt.</p></details>
+      <details><summary>Kostet StickBeat etwas?</summary>
+        <p>Nein. StickBeat und alle Werkzeuge sind kostenlos. Nur die optionale Spotify-Verbindung setzt ein Premium-Abo voraus.</p></details>
+      <details><summary>Werden meine Daten irgendwo hochgeladen?</summary>
+        <p>Nein. StickBeat spricht nur mit Spotify (Songinfos), YouTube Music (Ton) und Deezer (Cover). Einstellungen,
+          Spotify-Login und Log bleiben auf deinem PC.</p></details>
+      <details><summary>Mein Player zeigt „NO dEV“ oder findet nichts.</summary>
+        <p>Meist ist der Stick nicht FAT32 formatiert. StickBeat zeigt das Format im Tab „USB-Stick“ an. Achtung:
+          Formatieren löscht alles auf dem Stick.</p></details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="brand"><span class="disc sm" aria-hidden="true"></span><span>StickBeat</span></div>
+    <p>Privates Hobbyprojekt · nur für den privaten Gebrauch · nicht verbunden mit Spotify, YouTube, Google oder Deezer.</p>
+    <p><a href="https://github.com/VRTomsky/Spotify-Downloader">Quellcode auf GitHub</a> ·
+      <a href="https://github.com/VRTomsky/Spotify-Downloader#readme">Ausführliche Anleitung (README)</a></p>
+  </footer>
+
+  <script src="site/script.js"></script>
+</body>
+</html>
