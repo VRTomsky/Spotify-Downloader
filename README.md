@@ -12,9 +12,9 @@ wird nicht angefasst.
 
 ## 1. Einmalige Installation
 
-Auf deinem PC ist schon alles da: Python 3.13, FFmpeg und Node.js. **Du kannst direkt zu Schritt 2 springen.**
+Gebraucht werden Python 3.13, FFmpeg und Node.js. Sind die schon installiert, direkt zu Schritt 2 springen.
 
-Für einen anderen PC oder falls etwas fehlt:
+Sonst:
 
 1. Startmenü öffnen, `cmd` tippen, **Eingabeaufforderung** öffnen.
 2. Diese drei Zeilen nacheinander eintippen, nach jeder Zeile Enter drücken:
@@ -128,10 +128,10 @@ ZIP herunterladen und entpacken. Dann in StickBeat **Gekaufte Musik → Ordner w
 - FLAC, WAV, M4A & Co. werden mit deiner Qualitätseinstellung zu MP3.
 - Fehlende Infos und Cover holt StickBeat von Deezer (kostenlos, ohne Konto).
 
-## 6. Auf den USB-Stick (für deinen DJP-106SD)
+## 6. Auf den USB-Stick (Beispiel: Plattenspieler IMG Stage Line DJP-106SD)
 
 1. Stick einstecken und in StickBeat den Tab **USB-Stick** öffnen.
-2. **Stick wählen.** Steht dort **FAT32 ✓**, passt alles. Dein 64-GB-Stick ist schon FAT32.
+2. **Stick wählen.** Steht dort **FAT32 ✓**, passt alles.
 3. **Ordnung wählen:** *Ein Ordner pro Album/Playlist* (empfohlen). Die Taste **FOLDER** am Plattenspieler springt dann genau ein Album weiter.
 4. Alben und Playlists anhaken und **Auf Stick kopieren** klicken.
 5. Danach erscheint der **Spickzettel**: Ordner- und Titelnummern, so wie der Plattenspieler zählt.
