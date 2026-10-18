@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StickBeat</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23151310'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23332d25' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ffb020'/%3E%3Ccircle cx='16' cy='16' r='1.6' fill='%23151310'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="disc" aria-hidden="true"></span>
+      <div>
+        <h1>StickBeat</h1>
+        <p>Spotify-Link rein · MP3 raus · ab auf den Stick</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="download" aria-selected="true">Download</button>
+      <button role="tab" data-tab="import">Gekaufte Musik</button>
+      <button role="tab" data-tab="usb">USB-Stick</button>
+      <button role="tab" data-tab="settings">Einstellungen</button>
+    </nav>
+    <button id="spotifyPill" class="pill" type="button" title="Spotify-Verbindung">Spotify …</button>
+  </header>
+
+  <main>
+    <!-- DOWNLOAD -------------------------------------------------------------------------->
+    <section id="tab-download" class="tab" data-panel="download">
+      <div class="card hero">
+        <label class="eyebrow" for="link">Spotify-Link einfügen</label>
+        <div class="linkrow">
+          <div class="inputwrap">
+            <input id="link" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="https://open.spotify.com/playlist/…  (Song, Album oder Playlist)">
+            <span id="linkType" class="badge muted">–</span>
+          </div>
+          <button id="startBtn" class="primary" type="button" disabled>Download starten</button>
+        </div>
+        <div class="quick" id="quickRow">
+          <button id="myPlaylistsBtn" class="ghost" type="button">Meine Playlists</button>
+          <button id="likedBtn" class="ghost" type="button">Meine Lieblingssongs</button>
+          <span class="hint" id="quickHint"></span>
+        </div>
+        <div id="playlistPicker" class="picker" hidden></div>
+
+        <div class="opts">
+          <div class="opt">
+            <span class="eyebrow">Qualität</span>
+            <select id="optBitrate">
+              <option value="320">320 kbps (beste)</option>
+              <option value="256">256 kbps</option>
+              <option value="192">192 kbps</option>
+              <option value="128">128 kbps (klein)</option>
+            </select>
+          </div>
+          <div class="opt grow">
+            <span class="eyebrow">Speichern in</span>
+            <div class="target">
+              <code id="optTarget" title=""></code>
+              <button id="pickTarget" class="ghost small" type="button">Ändern …</button>
+            </div>
+            <div id="targetChips" class="chips"></div>
+          </div>
+          <div class="opt">
+            <span class="eyebrow">Playlists ablegen</span>
+            <select id="optLayout">
+              <option value="playlist">Eigener Ordner, Playlist-Reihenfolge</option>
+              <option value="artist">Einsortieren nach Interpret/Album</option>
+            </select>
+          </div>
+        </div>
+        <p class="fineprint">Audio kommt von YouTube Music (meist 130–160 kbps). 320 kbps macht die Datei verlustarm,
+          aber nicht besser als die Quelle. Nur für dich privat – nicht weitergeben.</p>
+      </div>
+
+      <div id="errorsPanel" class="card errors" hidden>
+        <div class="cardhead">
+          <h2>Fehlgeschlagen</h2>
+          <span class="hint">Einzeln nochmal versuchen oder eigenen YouTube-Link angeben.</span>
+        </div>
+        <ul id="errorList" class="errorlist"></ul>
+      </div>
+    </section>
+
+    <!-- IMPORT ---------------------------------------------------------------------------->
+    <section id="tab-import" class="tab" data-panel="import" hidden>
+      <div class="card">
+        <div class="cardhead"><h2>Gekaufte Musik übernehmen</h2><span class="badge ok">100 % legal</span></div>
+        <p>Der saubere Weg: Musik als <strong>DRM-freie</strong> Datei kaufen (ohne Kopierschutz) – z. B. bei
+          <strong>Bandcamp</strong> (oft 320 kbps oder FLAC, Geld geht größtenteils an die Künstler), im
+          <strong>Amazon Music Store</strong>, bei <strong>7digital</strong> oder <strong>Qobuz</strong>.
+          ZIP herunterladen, entpacken, hier den Ordner wählen.</p>
+        <ul class="ticks">
+          <li>MP3s bleiben unverändert (kein Qualitätsverlust), bekommen aber saubere Tags.</li>
+          <li>FLAC, WAV, M4A &amp; Co. werden mit deiner Qualitätseinstellung in MP3 umgewandelt.</li>
+          <li>Fehlende Infos und Cover ergänzt StickBeat über Deezer, dann wird nach Interpret/Album sortiert.</li>
+        </ul>
+        <div class="target big">
+          <code id="importSource">Noch kein Ordner gewählt</code>
+          <button id="pickImport" class="ghost" type="button">Ordner wählen …</button>
+          <button id="startImport" class="primary" type="button" disabled>Import starten</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- USB ------------------------------------------------------------------------------->
+    <section id="tab-usb" class="tab" data-panel="usb" hidden>
+      <div class="usbgrid">
+        <div class="card">
+          <div class="cardhead"><h2>1 · Stick wählen</h2><button id="refreshDrives" class="ghost small" type="button">Neu suchen</button></div>
+          <div id="driveList" class="drives"></div>
+        </div>
+        <div class="card">
+          <div class="cardhead"><h2>2 · Ordnung auf dem Stick</h2></div>
+          <label class="radio"><input type="radio" name="usbLayout" value="flat" checked>
+            <span><strong>Ein Ordner pro Album/Playlist</strong> <em class="badge ok">empfohlen</em><br>
+              <small>Taste FOLDER am DJP-106SD springt genau ein Album weiter.</small></span></label>
+          <label class="radio"><input type="radio" name="usbLayout" value="tree">
+            <span><strong>Wie in der Bibliothek</strong> (Interpret/Album)<br>
+              <small>Zwei Ebenen – übersichtlich am PC, am Player mehr Ordner.</small></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead">
+          <h2>3 · Was soll drauf?</h2>
+          <div class="cardtools">
+            <input id="libFilter" type="search" placeholder="Filtern …">
+            <button id="libAll" class="ghost small" type="button">Alle</button>
+            <button id="libNone" class="ghost small" type="button">Keine</button>
+            <button id="libOpen" class="ghost small" type="button">Bibliothek öffnen</button>
+          </div>
+        </div>
+        <div id="libList" class="liblist"></div>
+        <div class="copybar">
+          <span id="libSummary" class="hint"></span>
+          <button id="copyBtn" class="primary" type="button" disabled>Auf Stick kopieren</button>
+        </div>
+      </div>
+
+      <div class="card" id="indexCard">
+        <div class="cardhead">
+          <h2>So sieht dein Plattenspieler den Stick</h2>
+          <div class="cardtools">
+            <button id="loadIndex" class="ghost small" type="button">Stick einlesen</button>
+            <button id="printIndex" class="ghost small" type="button">Drucken</button>
+          </div>
+        </div>
+        <p class="hint">Das Display des DJP-106SD zeigt nur Ordner- und Titelnummern. Diese Liste ist dein Spickzettel
+          (liegt nach dem Kopieren auch als <code>INHALT.txt</code> auf dem Stick).</p>
+        <div id="indexView" class="indexview"></div>
+      </div>
+    </section>
+
+    <!-- EINSTELLUNGEN ---------------------------------------------------------------------->
+    <section id="tab-settings" class="tab" data-panel="settings" hidden>
+      <div class="card">
+        <div class="cardhead"><h2>Spotify verbinden</h2><span id="spotifyState" class="badge muted">–</span></div>
+        <p>Mit Verbindung liest StickBeat deine eigenen Playlists vollständig (auch privat) und alle Songinfos
+          direkt von Spotify. Ohne Verbindung klappt es auch – fremde Playlists dann aber nur bis 100 Songs.
+          <strong>Spotify verlangt dafür seit 2026 ein Premium-Abo.</strong></p>
+        <ol class="steps">
+          <li>Öffne <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a>
+            und melde dich mit deinem Spotify-Konto an.</li>
+          <li>Klick <strong>Create app</strong>. Name und Beschreibung: z. B. „StickBeat privat“.</li>
+          <li>Bei <strong>Redirect URIs</strong> genau das eintragen und auf <strong>Add</strong> klicken:
+            <span class="copyline"><code id="redirectUri">http://127.0.0.1:5000/callback</code>
+              <button id="copyRedirect" class="ghost small" type="button">Kopieren</button></span></li>
+          <li>Bei <strong>Which API/SDKs</strong> den Haken bei <strong>Web API</strong> setzen, Bedingungen lesen, <strong>Save</strong>.</li>
+          <li>In der App auf <strong>Settings</strong> → die <strong>Client ID</strong> kopieren und hier einfügen.</li>
+          <li><strong>Mit Spotify verbinden</strong> klicken und im Spotify-Fenster zustimmen.</li>
+        </ol>
+        <div class="formrow">
+          <input id="clientId" type="text" placeholder="Client ID (32 Zeichen)" spellcheck="false" autocomplete="off">
+          <button id="saveClientId" class="ghost" type="button">Speichern</button>
+          <a id="connectBtn" class="button primary" href="/spotify/login">Mit Spotify verbinden</a>
+          <button id="disconnectBtn" class="ghost danger" type="button" hidden>Trennen</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead"><h2>Bibliothek &amp; Dateien</h2></div>
+        <div class="settings-grid">
+          <label>Bibliotheksordner (Standard-Ziel)</label>
+          <div class="target"><code id="setOutput"></code><button id="pickOutput" class="ghost small" type="button">Ändern …</button></div>
+
+          <label for="setBitrate">Standard-Qualität</label>
+          <select id="setBitrate">
+            <option value="320">320 kbps</option><option value="256">256 kbps</option>
+            <option value="192">192 kbps</option><option value="128">128 kbps</option>
+          </select>
+
+          <label for="setCover">Cover-Größe</label>
+          <select id="setCover">
+            <option value="1000">1000 × 1000 px (scharf)</option>
+            <option value="800">800 × 800 px</option>
+            <option value="500">500 × 500 px (für sehr alte Geräte)</option>
+          </select>
+
+          <label for="setAscii">Dateinamen</label>
+          <label class="check"><input id="setAscii" type="checkbox"> Umlaute ersetzen (ä → ae) – nur für sehr alte Player nötig</label>
+
+          <label>cookies.txt (optional)</label>
+          <div>
+            <div class="target"><code id="setCookies">nicht gesetzt</code>
+              <button id="pickCookies" class="ghost small" type="button">Wählen …</button>
+              <button id="clearCookies" class="ghost small" type="button">Entfernen</button></div>
+            <small class="hint">Nur wenn du YouTube Music Premium hast: Mit einer cookies.txt aus deinem Browser liefert
+              YouTube bis 256 kbps statt ~130–160 kbps. Datei bleibt auf deinem PC.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardhead"><h2>System</h2></div>
+        <ul id="systemList" class="syslist"></ul>
+        <div class="formrow">
+          <button id="openLog" class="ghost small" type="button">Fehler-Log öffnen</button>
+          <button id="openData" class="ghost small" type="button">Datenordner öffnen</button>
+        </div>
+      </div>
+
+      <div class="card legal">
+        <div class="cardhead"><h2>Rechtliches, ehrlich</h2></div>
+        <p>StickBeat holt von Spotify nur Infos (Titel, Interpret, Cover) und knackt keinen Kopierschutz. Der Ton kommt von
+          YouTube Music. Das ist eine <strong>Grauzone</strong>: Die Privatkopie (§ 53 UrhG) erlaubt private Kopien, aber
+          YouTube-AGB verbieten Downloads, und das Umgehen technischer Schutzmaßnahmen (§ 95a UrhG) ist nicht erlaubt.
+          Klar legal ist gekaufte, DRM-freie Musik (Tab „Gekaufte Musik“). Dateien niemals weitergeben oder hochladen.</p>
+      </div>
+    </section>
+
+    <!-- AUFTRÄGE (unter Download/Import/USB) ------------------------------------------------>
+    <section id="jobs" class="jobs">
+      <div class="jobshead">
+        <h2>Aufträge</h2>
+        <button id="clearJobs" class="ghost small" type="button">Erledigte entfernen</button>
+      </div>
+      <div id="jobList" class="joblist"></div>
+    </section>
+  </main>
+
+  <dialog id="ytDialog">
+    <form method="dialog" id="ytForm">
+      <h3>Eigenen YouTube-Link verwenden</h3>
+      <p class="hint" id="ytFor"></p>
+      <ol class="steps compact">
+        <li>Auf <a href="https://music.youtube.com" target="_blank" rel="noopener">music.youtube.com</a> den Song suchen.</li>
+        <li>Song öffnen, Link aus der Adresszeile kopieren.</li>
+        <li>Hier einfügen – StickBeat lädt genau diesen.</li>
+      </ol>
+      <input id="ytUrl" type="url" placeholder="https://music.youtube.com/watch?v=…" required>
+      <div class="dialogbtns">
+        <button value="cancel" class="ghost" type="submit" formnovalidate>Abbrechen</button>
+        <button value="ok" class="primary" type="submit">Mit diesem Link laden</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

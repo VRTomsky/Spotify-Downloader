@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Persönliches – gehört nie ins Repo
+cookies.txt
+*.log
+spotify_token.json
+settings.json
