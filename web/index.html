@@ -75,6 +75,20 @@
           aber nicht besser als die Quelle. Nur für dich privat – nicht weitergeben.</p>
       </div>
 
+      <div id="blockPanel" class="card block" hidden>
+        <div class="cardhead"><h2>YouTube sperrt gerade deine Internet-Adresse</h2></div>
+        <p>Kein Fehler von StickBeat und nicht dein Link: Nach vielen Downloads von derselben Adresse fragt YouTube
+          „Bist du ein Bot?“ und liefert nichts mehr. StickBeat pausiert deshalb – weiter anfragen würde die Sperre nur verlängern.</p>
+        <ol class="steps">
+          <li><strong>Schnell:</strong> Router neu verbinden – bei den meisten Anschlüssen gibt es dann eine neue Internet-Adresse.
+            Router 1 Minute vom Strom nehmen, bei der FRITZ!Box geht auch <em>Internet → Online-Monitor → Neu verbinden</em>.
+            Danach unten „Fehlgeschlagene nochmal“.</li>
+          <li><strong>Oder warten:</strong> Meist ist die Sperre nach ein paar Stunden von selbst weg.</li>
+          <li><strong>Dauerhaft:</strong> YouTube-Anmeldung einrichten – StickBeat nutzt sie nur, wenn YouTube sperrt.
+            <button class="ghost small" type="button" data-goto="settings">Anmeldung einrichten</button></li>
+        </ol>
+      </div>
+
       <div id="errorsPanel" class="card errors" hidden>
         <div class="cardhead">
           <h2>Fehlgeschlagen</h2>
@@ -201,16 +215,43 @@
 
           <label for="setAscii">Dateinamen</label>
           <label class="check"><input id="setAscii" type="checkbox"> Umlaute ersetzen (ä → ae) – nur für sehr alte Player nötig</label>
-
-          <label>cookies.txt (optional)</label>
-          <div>
-            <div class="target"><code id="setCookies">nicht gesetzt</code>
-              <button id="pickCookies" class="ghost small" type="button">Wählen …</button>
-              <button id="clearCookies" class="ghost small" type="button">Entfernen</button></div>
-            <small class="hint">Nur wenn du YouTube Music Premium hast: Mit einer cookies.txt aus deinem Browser liefert
-              YouTube bis 256 kbps statt ~130–160 kbps. Datei bleibt auf deinem PC.</small>
-          </div>
         </div>
+      </div>
+
+      <div class="card" id="ytAuthCard">
+        <div class="cardhead"><h2>YouTube-Anmeldung (bei Sperre)</h2><span id="ytAuthState" class="badge muted">aus</span></div>
+        <p>Hilft, wenn YouTube „Bist du ein Bot?“ fragt oder ein Song altersbeschränkt ist. StickBeat nutzt die Anmeldung
+          <strong>nur dann</strong> – sonst lädt es wie gewohnt ohne. Alles bleibt auf deinem PC.</p>
+        <div class="settings-grid">
+          <label for="setYtAuth">Anmeldung</label>
+          <select id="setYtAuth">
+            <option value="off">Aus</option>
+            <option value="browser">Aus meinem Browser übernehmen</option>
+            <option value="file">cookies.txt-Datei</option>
+          </select>
+
+          <label for="setBrowser" data-yt="browser">Browser</label>
+          <select id="setBrowser" data-yt="browser"></select>
+
+          <label data-yt="file">cookies.txt</label>
+          <div class="target" data-yt="file"><code id="setCookies">nicht gesetzt</code>
+            <button id="pickCookies" class="ghost small" type="button">Wählen …</button></div>
+
+          <label>Prüfen</label>
+          <div class="formrow"><button id="testYt" class="ghost small" type="button">Anmeldung testen</button>
+            <span id="ytTestResult" class="hint"></span></div>
+        </div>
+        <ul class="ticks small">
+          <li>Vorher im Browser bei <a href="https://www.youtube.com" target="_blank" rel="noopener">youtube.com</a> angemeldet sein.</li>
+          <li><strong>Chrome, Edge, Brave, Opera:</strong> Browser vor dem Test <strong>komplett schließen</strong> (auch unten
+            rechts im Tray), sonst ist die Anmeldung gesperrt. Bei Chrome klappt es wegen neuer Verschlüsselung oft gar nicht –
+            dann einen anderen Browser oder die cookies.txt nehmen. Firefox klappt am zuverlässigsten.</li>
+          <li><strong>cookies.txt:</strong> Browser-Erweiterung „Get cookies.txt LOCALLY“ installieren, ein privates Fenster
+            öffnen, dort bei YouTube anmelden, über die Erweiterung exportieren und das private Fenster schließen.</li>
+          <li><strong>Risiko:</strong> Google kann Konten, die viel herunterladen, vorübergehend einschränken. Nimm am besten
+            ein zweites Google-Konto, nicht dein Hauptkonto.</li>
+          <li>Bonus mit YouTube Music Premium: Die Quelle hat dann bis 256 kbps statt ~130–160 kbps.</li>
+        </ul>
       </div>
 
       <div class="card">

@@ -95,6 +95,7 @@ def create_app() -> Flask:
             "spotify": {"client_id_set": bool(s.get("spotify_client_id")), "connected": spotify.connected(),
                         "profile": prof},
             "tools": {"ffmpeg": bool(shutil.which("ffmpeg")), "js_runtime": next(iter(audio.js_runtime() or {}), None)},
+            "browsers": audio.installed_browsers(),
             "log_file": str(log_file()),
             "data_dir": str(data_dir()),
         })
@@ -226,6 +227,13 @@ def create_app() -> Flask:
         if body.get("cookies_file") and not os.path.isfile(body["cookies_file"]):
             return fail("cookies.txt nicht gefunden.")
         return jsonify({"ok": True, "settings": settings.save(body)})
+
+    @app.post("/api/youtube/test")
+    def youtube_test():
+        works, message = audio.test_auth(settings.load())
+        if works:
+            manager.clear_block()
+        return jsonify({"ok": True, "works": works, "message": message})
 
     @app.post("/api/pick")
     def pick():

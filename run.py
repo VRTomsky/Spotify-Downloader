@@ -47,6 +47,8 @@ def ensure_packages() -> None:
 
 
 if __name__ == "__main__":
+    if "--port" in sys.argv[:-1]:
+        os.environ["STICKBEAT_PORT"] = sys.argv[sys.argv.index("--port") + 1]
     ensure_packages()
     sys.path.insert(0, str(HERE))
     from stickbeat.__main__ import main

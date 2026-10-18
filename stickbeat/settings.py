@@ -15,7 +15,9 @@ DEFAULTS: dict[str, Any] = {
     "playlist_layout": "playlist",  # "playlist" = eigener Ordner in Playlist-Reihenfolge, "artist" = Interpret/Album
     "ascii_names": False,          # Umlaute in Dateinamen ersetzen (für sehr alte Geräte)
     "spotify_client_id": "",
-    "cookies_file": "",            # optional: cookies.txt für YouTube Music Premium (bis 256 kbps)
+    "youtube_auth": "off",         # "off" | "browser" | "file" – YouTube-Anmeldung, nur bei Sperre benutzt
+    "browser": "",                 # Browser, aus dem die Anmeldung kommt (siehe audio.BROWSERS)
+    "cookies_file": "",            # cookies.txt aus dem Browser exportiert
     "usb_layout": "flat",          # "flat" = ein Ordner pro Album auf dem Stick, "tree" = wie Bibliothek
 }
 
@@ -31,7 +33,10 @@ def load() -> dict[str, Any]:
         values = dict(DEFAULTS)
         if _path.exists():
             try:
-                values.update(json.loads(_path.read_text("utf-8")))
+                stored = json.loads(_path.read_text("utf-8"))
+                if "youtube_auth" not in stored and stored.get("cookies_file"):
+                    stored["youtube_auth"] = "file"  # Einstellung aus Version 1.0 übernehmen
+                values.update(stored)
             except (OSError, ValueError) as exc:
                 log.warning("Einstellungen nicht lesbar, nehme Standardwerte: %s", exc)
         return values
@@ -59,6 +64,10 @@ def _clean(key: str, value: Any, old: Any) -> Any:
         return value if value in ("playlist", "artist") else old
     if key == "usb_layout":
         return value if value in ("flat", "tree") else old
+    if key == "youtube_auth":
+        return value if value in ("off", "browser", "file") else old
+    if key == "browser":
+        return value if value in ("firefox", "brave", "edge", "chrome", "operagx", "opera", "vivaldi") else old
     if key == "ascii_names":
         return bool(value)
     return str(value or "").strip()

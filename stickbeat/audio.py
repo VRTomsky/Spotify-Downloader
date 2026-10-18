@@ -28,6 +28,65 @@ class AudioError(Exception):
     pass
 
 
+class LoginRequired(AudioError):
+    """YouTube liefert nur mit Anmeldung (Bot-Sperre der Internet-Adresse oder Altersgrenze)."""
+
+    def __init__(self, message: str, bot: bool):
+        super().__init__(message)
+        self.bot = bot
+
+
+class AuthError(AudioError):
+    """Die hinterlegte YouTube-Anmeldung (Cookies) ist nicht nutzbar."""
+
+
+# Browser, aus denen yt-dlp die YouTube-Anmeldung (Cookies) lesen kann: id -> (Anzeige, yt-dlp-Name, Profilordner)
+BROWSERS = {
+    "firefox": ("Firefox", "firefox", None),
+    "brave": ("Brave", "brave", None),
+    "edge": ("Microsoft Edge", "edge", None),
+    "chrome": ("Google Chrome", "chrome", None),
+    "operagx": ("Opera GX", "opera", r"%APPDATA%\Opera Software\Opera GX Stable"),
+    "opera": ("Opera", "opera", None),
+    "vivaldi": ("Vivaldi", "vivaldi", None),
+}
+_BROWSER_DIRS = {
+    "firefox": r"%APPDATA%\Mozilla\Firefox\Profiles",
+    "brave": r"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data",
+    "edge": r"%LOCALAPPDATA%\Microsoft\Edge\User Data",
+    "chrome": r"%LOCALAPPDATA%\Google\Chrome\User Data",
+    "operagx": r"%APPDATA%\Opera Software\Opera GX Stable",
+    "opera": r"%APPDATA%\Opera Software\Opera Stable",
+    "vivaldi": r"%LOCALAPPDATA%\Vivaldi\User Data",
+}
+_TEST_VIDEO = "https://www.youtube.com/watch?v=jNQXAC9IVRw"  # „Me at the zoo“, 19 Sekunden
+
+# Nach einer Sperre lädt StickBeat eine Weile gleich mit Anmeldung, statt jedes Mal erst ohne
+_auth_until = 0.0
+AUTH_STICKY = 30 * 60
+
+_SESSION_COOKIES = {"SAPISID", "__Secure-3PAPISID", "LOGIN_INFO"}  # nur vorhanden, wenn wirklich angemeldet
+_LOGIN = re.compile(r"sign in to confirm|not a bot|confirm your age|age.restricted|inappropriate for some users", re.I)
+_COOKIE_FAIL = re.compile(r"cookie|decrypt|dpapi|keyring|could not copy|could not find .* (profile|browser)", re.I)
+
+
+def installed_browsers() -> list[dict]:
+    return [{"id": key, "label": label, "installed": os.path.isdir(os.path.expandvars(_BROWSER_DIRS[key]))}
+            for key, (label, _, _) in BROWSERS.items()]
+
+
+def auth_options(settings: dict) -> dict:
+    """yt-dlp-Optionen für die YouTube-Anmeldung laut Einstellungen (leer = keine)."""
+    mode = settings.get("youtube_auth")
+    if mode == "file":
+        path = settings.get("cookies_file") or ""
+        return {"cookiefile": path} if os.path.isfile(path) else {}
+    if mode == "browser" and settings.get("browser") in BROWSERS:
+        _, name, profile = BROWSERS[settings["browser"]]
+        return {"cookiesfrombrowser": (name, os.path.expandvars(profile) if profile else None, None, None)}
+    return {}
+
+
 def js_runtime() -> dict | None:
     """yt-dlp braucht für YouTube eine JavaScript-Laufzeit (Deno oder Node.js)."""
     for name in ("deno", "node", "bun"):
@@ -46,19 +105,23 @@ def ffmpeg_path() -> str:
 
 # --- Download ---------------------------------------------------------------------------
 
-def download(url: str, workdir: Path, on_progress: ProgressFn, cookies: str = "",
+def download(url: str, workdir: Path, on_progress: ProgressFn, auth: dict | None = None,
              is_cancelled: Callable[[], bool] = lambda: False) -> tuple[Path, dict]:
-    def hook(status: dict) -> None:
-        if is_cancelled():
-            raise Cancelled()
-        if status.get("status") == "downloading":
-            total = status.get("total_bytes") or status.get("total_bytes_estimate")
-            if total:
-                on_progress(min(1.0, (status.get("downloaded_bytes") or 0) / total))
+    """Lädt die Audiospur. Die Anmeldung wird nur benutzt, wenn YouTube ohne sie sperrt."""
+    global _auth_until
+    with_auth = bool(auth) and time.time() < _auth_until
+    try:
+        return _download(url, workdir, on_progress, auth if with_auth else None, is_cancelled)
+    except LoginRequired:
+        if not auth or with_auth:
+            raise
+    _auth_until = time.time() + AUTH_STICKY
+    return _download(url, workdir, on_progress, auth, is_cancelled)
 
+
+def _base_options(workdir: Path | None = None) -> dict:
     opts: dict = {
         "format": "bestaudio/best",
-        "outtmpl": str(workdir / "quelle.%(ext)s"),
         "quiet": True,
         "no_warnings": True,
         "noprogress": True,
@@ -67,13 +130,28 @@ def download(url: str, workdir: Path, on_progress: ProgressFn, cookies: str = ""
         "socket_timeout": 30,
         "retries": 5,
         "fragment_retries": 5,
-        "progress_hooks": [hook],
     }
+    if workdir is not None:
+        opts["outtmpl"] = str(workdir / "quelle.%(ext)s")
     runtime = js_runtime()
     if runtime:
         opts["js_runtimes"] = runtime
-    if cookies and os.path.isfile(cookies):
-        opts["cookiefile"] = cookies
+    return opts
+
+
+def _download(url: str, workdir: Path, on_progress: ProgressFn, auth: dict | None,
+              is_cancelled: Callable[[], bool]) -> tuple[Path, dict]:
+    def hook(status: dict) -> None:
+        if is_cancelled():
+            raise Cancelled()
+        if status.get("status") == "downloading":
+            total = status.get("total_bytes") or status.get("total_bytes_estimate")
+            if total:
+                on_progress(min(1.0, (status.get("downloaded_bytes") or 0) / total))
+
+    opts = _base_options(workdir)
+    opts["progress_hooks"] = [hook]
+    opts.update(auth or {})
 
     info: dict = {}
     for attempt in range(1, ATTEMPTS + 1):
@@ -83,16 +161,17 @@ def download(url: str, workdir: Path, on_progress: ProgressFn, cookies: str = ""
             break
         except Cancelled:
             raise
-        except yt_dlp.utils.DownloadError as exc:
-            if isinstance(exc.exc_info[1] if exc.exc_info else None, Cancelled):
+        except Exception as exc:  # noqa: BLE001 – yt-dlp wirft je nach Fehler verschiedene Typen
+            inner = (getattr(exc, "exc_info", None) or (None, None))[1]
+            if isinstance(inner, Cancelled):
                 raise Cancelled() from exc
             # YouTube antwortet ab und zu mit 403 oder bricht ab – ein neuer Anlauf klappt dann meist
-            if attempt < ATTEMPTS and _TRANSIENT.search(str(exc)):
+            if attempt < ATTEMPTS and _TRANSIENT.search(str(exc)) and not _LOGIN.search(str(exc)):
                 for leftover in workdir.glob("quelle.*"):
                     leftover.unlink(missing_ok=True)
                 time.sleep(2 * attempt)
                 continue
-            raise AudioError(_friendly_ytdlp(str(exc))) from exc
+            raise _classify(exc, bool(auth)) from exc
 
     files = [Path(d["filepath"]) for d in info.get("requested_downloads") or [] if d.get("filepath")]
     files = [f for f in files if f.exists()] or sorted(workdir.glob("quelle.*"))
@@ -103,24 +182,55 @@ def download(url: str, workdir: Path, on_progress: ProgressFn, cookies: str = ""
         "abr": info.get("abr") or info.get("tbr"),
         "title": info.get("title"),
         "duration": info.get("duration"),
+        "with_auth": bool(auth),
     }
     return files[0], source
 
 
-def _friendly_ytdlp(message: str) -> str:
-    text = message.replace("ERROR: ", "").strip()
+def test_auth(settings: dict) -> tuple[bool, str]:
+    """Prüft die hinterlegte Anmeldung an einem kurzen Video (lädt nichts herunter)."""
+    auth = auth_options(settings)
+    if not auth:
+        if settings.get("youtube_auth") == "file":
+            return False, "cookies.txt nicht gefunden – Datei wählen."
+        return False, "Keine Anmeldung eingestellt."
+    opts = _base_options()
+    opts.update(auth, skip_download=True)
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            logged_in = any(c.name in _SESSION_COOKIES and c.domain.endswith("youtube.com") for c in ydl.cookiejar)
+            if not logged_in:
+                return False, ("Keine YouTube-Anmeldung gefunden. Im Browser bei youtube.com anmelden"
+                               + (" und die cookies.txt neu exportieren." if "cookiefile" in auth else ", Browser schließen, nochmal testen."))
+            ydl.extract_info(_TEST_VIDEO, download=False)
+    except Exception as exc:  # noqa: BLE001
+        return False, str(_classify(exc, True))
+    return True, "Klappt – angemeldet, YouTube liefert."
+
+
+def _classify(exc: Exception, with_auth: bool) -> AudioError:
+    text = str(exc).replace("ERROR: ", "").strip()
     low = text.lower()
     if "sign in to confirm" in low or "not a bot" in low:
-        return "YouTube will eine Anmeldung (Bot-Schutz). Später nochmal versuchen oder cookies.txt in den Einstellungen hinterlegen."
-    if "age" in low and ("restricted" in low or "confirm your age" in low):
-        return "Song ist bei YouTube altersbeschränkt – geht nur mit cookies.txt (Einstellungen)."
+        if with_auth:
+            return LoginRequired("YouTube sperrt trotz Anmeldung (Bot-Schutz). Cookies evtl. abgelaufen – neu "
+                                 "exportieren, Router neu verbinden oder später nochmal.", bot=True)
+        return LoginRequired("YouTube sperrt gerade deine Internet-Adresse (Bot-Schutz) – siehe Hinweis oben.", bot=True)
+    if "could not find" in low and ("cookies database" in low or "browser" in low or "profile" in low):
+        return AuthError("Browser-Daten nicht gefunden – ist der Browser installiert und dort bei YouTube angemeldet?")
+    if _COOKIE_FAIL.search(low):
+        return AuthError("Browser-Anmeldung nicht lesbar. Browser komplett schließen (auch unten rechts im Tray) "
+                         "und nochmal – oder Firefox bzw. eine cookies.txt nehmen.")
+    if _LOGIN.search(low):
+        return LoginRequired("Song ist bei YouTube altersbeschränkt – geht nur mit YouTube-Anmeldung (Einstellungen).",
+                             bot=False)
     if "video unavailable" in low or "not available" in low:
-        return "Dieses Video ist bei YouTube nicht (mehr) verfügbar. Tipp: anderen YouTube-Link angeben."
+        return AudioError("Dieses Video ist bei YouTube nicht (mehr) verfügbar. Tipp: anderen YouTube-Link angeben.")
     if "javascript" in low or "js runtime" in low or "n challenge" in low:
-        return "yt-dlp braucht Node.js oder Deno:  winget install OpenJS.NodeJS.LTS  – danach neu starten."
+        return AudioError("yt-dlp braucht Node.js oder Deno:  winget install OpenJS.NodeJS.LTS  – danach neu starten.")
     if "http error 403" in low:
-        return "YouTube blockt gerade (HTTP 403). StickBeat neu starten (holt yt-dlp-Updates) und nochmal versuchen."
-    return "Download fehlgeschlagen: " + text.splitlines()[0][:220]
+        return AudioError("YouTube blockt gerade (HTTP 403). StickBeat neu starten (holt yt-dlp-Updates) und nochmal versuchen.")
+    return AudioError("Download fehlgeschlagen: " + (text.splitlines() or ["unbekannter Fehler"])[0][:220])
 
 
 # --- Umwandeln ---------------------------------------------------------------------------

@@ -82,6 +82,26 @@ Mit Verbindung gibt es zusätzlich die Knöpfe **Meine Playlists** und **Meine L
 
 Schon vorhandene Songs werden übersprungen. Eine Playlist kannst du also später einfach nochmal laden, dann kommen nur die neuen Songs.
 
+### „YouTube sperrt gerade deine Internet-Adresse“ (Bot-Schutz)
+
+Nach vielen Downloads von derselben Internet-Adresse fragt YouTube „Bist du ein Bot?“ und liefert nichts mehr – egal
+welcher Song. Das ist kein Fehler im Link. StickBeat erkennt das, zeigt oben einen orangen Hinweis und überspringt
+die restlichen Songs, statt YouTube weiter anzufragen (das würde die Sperre verlängern). Zwischen zwei Downloads macht
+StickBeat außerdem immer 2–4 Sekunden Pause, damit es seltener so weit kommt.
+
+So geht es weiter:
+1. **Router neu verbinden.** Router 1 Minute vom Strom nehmen, oder bei der FRITZ!Box *Internet → Online-Monitor → Neu verbinden*.
+   Bei den meisten Anschlüssen gibt es danach eine neue Adresse. Dann **Fehlgeschlagene nochmal** klicken.
+2. **Oder warten.** Meist ist die Sperre nach ein paar Stunden weg.
+3. **Dauerhaft: YouTube-Anmeldung** unter *Einstellungen → YouTube-Anmeldung (bei Sperre)*. StickBeat nutzt sie nur,
+   wenn YouTube sperrt:
+   - **Aus meinem Browser übernehmen:** Browser wählen, der bei youtube.com angemeldet ist. Browser komplett schließen,
+     dann **Anmeldung testen**. Bei Chrome klappt das wegen neuer Verschlüsselung oft nicht, Firefox am zuverlässigsten.
+   - **cookies.txt-Datei:** Erweiterung „Get cookies.txt LOCALLY“, privates Fenster öffnen, bei YouTube anmelden,
+     exportieren, Fenster schließen, Datei in StickBeat wählen, **Anmeldung testen**.
+   - **Risiko:** Google kann Konten, die viel herunterladen, vorübergehend einschränken. Am besten ein zweites
+     Google-Konto nehmen, nicht dein Hauptkonto.
+
 ### Ordnerstruktur
 
 ```
@@ -142,7 +162,7 @@ YouTube Music liefert meist 130–160 kbps (Opus). StickBeat zeigt bei jedem Son
 (z. B. „Quelle opus 137 kbps“). Die MP3 ist echte 320 kbps CBR (konstante Bitrate, 44,1 kHz Stereo, liest dein
 Plattenspieler bis 320 kbps). Sie klingt so gut wie die Quelle, aber nicht besser.
 
-- Mit **YouTube Music Premium** und einer `cookies.txt` (Einstellungen) gibt es bis 256 kbps als Quelle.
+- Mit **YouTube Music Premium** und eingerichteter YouTube-Anmeldung (Einstellungen) gibt es bis 256 kbps als Quelle.
 - **Echte** 320 kbps oder verlustfrei gibt es nur mit gekauften Dateien (Abschnitt 5).
 
 ## 8. Rechtliches
@@ -161,7 +181,8 @@ Plattenspieler bis 320 kbps). Sie klingt so gut wie die Quelle, aber nicht besse
 | `start.bat` meldet „FFmpeg wurde nicht gefunden“ | `winget install Gyan.FFmpeg`, Fenster schließen, neu starten |
 | Browser zeigt „Seite nicht erreichbar“ | Läuft das schwarze Fenster noch? Sonst `start.bat` doppelklicken |
 | „Port 5000 ist belegt“ | StickBeat läuft schon in einem anderen Fenster – das nutzen |
-| Viele Songs: „YouTube blockt“ / „Bot-Schutz“ | Kurz warten, dann **Fehlgeschlagene nochmal**. Hilft das nicht: StickBeat neu starten (holt Updates) |
+| „YouTube sperrt gerade deine Internet-Adresse“ | Router neu verbinden oder ein paar Stunden warten, dann **Fehlgeschlagene nochmal**. Dauerhaft: YouTube-Anmeldung (Abschnitt 4) |
+| Einzelne Songs: „HTTP 403“ | StickBeat neu starten (holt yt-dlp-Updates), dann **Nochmal** |
 | Falscher Song geladen | Song im Explorer löschen, beim Auftrag **Songs anzeigen** öffnen, dann **YouTube-Link** mit dem richtigen Link |
 | Spotify: „403“ / „Premium“ | Premium aktiv? In der Developer-App unter *User Management* dein Konto eingetragen? |
 | Spotify: „Abfragelimit erreicht“ | Spotify bremst. Später nochmal – oder ohne Verbindung (Einbettung) weitermachen |

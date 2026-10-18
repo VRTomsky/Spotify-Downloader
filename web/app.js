@@ -111,14 +111,29 @@ async function loadInfo() {
   $("#setBitrate").value = s.bitrate;
   $("#setCover").value = s.cover_size;
   $("#setAscii").checked = !!s.ascii_names;
-  $("#setCookies").textContent = shortPath(s.cookies_file) || "nicht gesetzt";
-  $("#setCookies").title = s.cookies_file || "";
   $("#clientId").value = s.spotify_client_id || "";
   $("#redirectUri").textContent = S.info.redirect_uri;
   $$("input[name=usbLayout]").forEach((r) => (r.checked = r.value === s.usb_layout));
   renderTarget();
   renderSpotify();
   renderSystem();
+  renderYoutubeAuth();
+}
+
+function renderYoutubeAuth() {
+  const s = S.info.settings;
+  const browsers = [...S.info.browsers].sort((a, b) => b.installed - a.installed);
+  const chosen = s.browser || browsers.find((b) => b.installed)?.id || "firefox";
+  $("#setYtAuth").value = s.youtube_auth || "off";
+  $("#setBrowser").innerHTML = browsers
+    .map((b) => `<option value="${b.id}" ${b.id === chosen ? "selected" : ""}>${esc(b.label)}${b.installed ? "" : " (nicht gefunden)"}</option>`)
+    .join("");
+  $("#setCookies").textContent = shortPath(s.cookies_file) || "nicht gesetzt";
+  $("#setCookies").title = s.cookies_file || "";
+  $$("[data-yt]").forEach((el) => (el.hidden = el.dataset.yt !== s.youtube_auth));
+  const label = { off: "aus", browser: "Browser", file: "cookies.txt" }[s.youtube_auth] || "aus";
+  $("#ytAuthState").textContent = label;
+  $("#ytAuthState").className = s.youtube_auth === "off" ? "badge muted" : "badge";
 }
 
 function renderSpotify() {
@@ -205,7 +220,36 @@ $("#pickCookies").addEventListener("click", async () => {
   const path = await pick("file", "", "cookies.txt wählen");
   if (path) saveSettings({ cookies_file: path }, "cookies.txt gespeichert.");
 });
-$("#clearCookies").addEventListener("click", () => saveSettings({ cookies_file: "" }, "cookies.txt entfernt."));
+$("#setYtAuth").addEventListener("change", (e) => {
+  $("#ytTestResult").textContent = "";
+  const changes = { youtube_auth: e.target.value };
+  if (e.target.value === "browser") changes.browser = $("#setBrowser").value;
+  saveSettings(changes, e.target.value === "off" ? "YouTube-Anmeldung aus." : "Gespeichert – jetzt „Anmeldung testen“.");
+});
+$("#setBrowser").addEventListener("change", (e) => {
+  $("#ytTestResult").textContent = "";
+  saveSettings({ browser: e.target.value });
+});
+$("#testYt").addEventListener("click", async () => {
+  const out = $("#ytTestResult");
+  out.className = "hint";
+  out.textContent = "Teste …";
+  $("#testYt").disabled = true;
+  try {
+    const r = await api("/api/youtube/test", {});
+    out.textContent = r.message;
+    out.className = r.works ? "hint good" : "hint bad";
+  } catch (e) {
+    out.textContent = e.message;
+    out.className = "hint bad";
+  } finally {
+    $("#testYt").disabled = false;
+  }
+});
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("[data-goto]");
+  if (link) showTab(link.dataset.goto);
+});
 $("#openLog").addEventListener("click", () => api("/api/open", { path: S.info.log_file }).catch((e) => toast(e.message, true)));
 $("#openData").addEventListener("click", () => api("/api/open", { path: S.info.data_dir }).catch((e) => toast(e.message, true)));
 
@@ -617,6 +661,7 @@ function connectEvents() {
     const data = JSON.parse(e.data);
     S.jobs = data.jobs;
     S.busy = data.busy;
+    $("#blockPanel").hidden = !data.youtube_block;
     renderJobs();
   };
   es.onerror = () => {

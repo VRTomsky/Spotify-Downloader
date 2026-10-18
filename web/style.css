@@ -64,7 +64,11 @@ body.busy .disc { animation: spin 1.8s linear infinite; }
 .tabs { display: flex; gap: 4px; margin-left: auto; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; }
 .tabs button {
   border: 0; background: none; color: var(--muted); font: 600 0.9rem var(--sans);
-  padding: 7px 16px; border-radius: 999px; cursor: pointer;
+  padding: 7px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .brand p { display: none; }
+  .tabs button { padding: 7px 12px; }
 }
 .tabs button:hover { color: var(--text); }
 .tabs button[aria-selected="true"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-2); }
@@ -163,6 +167,12 @@ select { cursor: pointer; }
 .chip:hover { color: var(--text); border-color: var(--amber); }
 .chip.active { color: #1a1205; background: var(--amber); border-color: var(--amber); }
 
+.block { border-color: rgba(255, 176, 32, 0.55); box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.12); }
+.block h2 { color: var(--amber); }
+.ticks.small { font-size: 0.86rem; color: var(--muted); margin: 14px 0 0; }
+.ticks.small strong { color: var(--text); }
+.hint.good { color: var(--green); }
+.hint.bad { color: var(--red); }
 .errors { border-color: rgba(255, 107, 90, 0.35); }
 .errors h2 { color: var(--red); }
 .errorlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }

@@ -7,6 +7,7 @@ später einzeln (auch mit eigenem YouTube-Link) erneut versucht werden.
 from __future__ import annotations
 
 import json
+import random
 import re
 import shutil
 import threading
@@ -26,6 +27,7 @@ from .util import data_dir, human_size, log, temp_dir
 FINAL = {"fertig", "vorhanden", "fehler", "abgebrochen"}
 _YOUTUBE = re.compile(r"^https?://(www\.|m\.|music\.)?(youtube\.com/(watch\?|shorts/)|youtu\.be/)", re.I)
 MAX_JOBS = 30
+BLOCK_PAUSE = 20 * 60  # so lange nach einer YouTube-Sperre nichts Neues anfragen (außer auf Knopfdruck)
 
 
 @dataclass
@@ -109,6 +111,8 @@ class JobManager:
         self._cv = threading.Condition()
         self._lock = threading.RLock()
         self.version = 0
+        self.youtube_block = 0.0     # Zeitpunkt, an dem YouTube zuletzt mit Bot-Schutz gesperrt hat
+        self._last_download = 0.0
         self._state_file = data_dir() / "jobs.json"
         self._load()
         threading.Thread(target=self._worker, name="stickbeat-worker", daemon=True).start()
@@ -127,7 +131,21 @@ class JobManager:
     def snapshot(self) -> dict:
         with self._lock:
             return {"version": self.version, "jobs": [j.public() for j in self.jobs],
-                    "busy": any(j.status in ("läuft", "liest", "wartet") for j in self.jobs)}
+                    "busy": any(j.status in ("läuft", "liest", "wartet") for j in self.jobs),
+                    "youtube_block": self._blocked()}
+
+    def _blocked(self) -> bool:
+        return bool(self.youtube_block) and time.time() - self.youtube_block < BLOCK_PAUSE
+
+    def clear_block(self) -> None:
+        self.youtube_block = 0.0
+        self.bump()
+
+    def _pace(self) -> None:
+        """Kurze, zufällige Pause zwischen zwei YouTube-Downloads – wirkt weniger wie ein Bot."""
+        wait = random.uniform(2.0, 4.5) - (time.time() - self._last_download)
+        if wait > 0:
+            time.sleep(wait)
 
     def _job(self, job_id: str) -> Job | None:
         with self._lock:
@@ -157,6 +175,7 @@ class JobManager:
         if not parsed:
             raise ValueError("Das ist kein Spotify-Link für einen Song, ein Album oder eine Playlist.")
         kind, id_ = parsed
+        self.youtube_block = 0.0  # neuer Auftrag auf Knopfdruck: YouTube nochmal versuchen
         opts = {**settings.load(), **{k: v for k, v in overrides.items() if v not in (None, "")}}
         job = Job(id=uuid.uuid4().hex[:10], kind="spotify", title="Lese Spotify …", label=KIND_LABELS[kind],
                   link=link.strip(), status="liest", target=opts["output_dir"], settings=opts)
@@ -267,6 +286,7 @@ class JobManager:
             if url:
                 t.manual_url = url
         job.cancelled, job.finished, job.error = False, None, ""
+        self.youtube_block = 0.0
         self._enqueue(job, [t.index for t in targets])
         return len(targets)
 
@@ -386,6 +406,10 @@ class JobManager:
             track.message = "Schon vorhanden – übersprungen"
             return
 
+        if self._blocked():
+            # Weitere Anfragen würden die YouTube-Sperre nur verlängern
+            raise audio.LoginRequired("Übersprungen – YouTube sperrt gerade. Später „Fehlgeschlagene nochmal“.", bot=True)
+
         if track.manual_url:
             url, found = track.manual_url, "Eigener YouTube-Link"
         else:
@@ -398,10 +422,19 @@ class JobManager:
 
         track.status = "lädt"
         self.bump()
-        source_file, source = audio.download(url, work, self._progress(track, 0.1, 0.6),
-                                             opts.get("cookies_file", ""), is_cancelled)
+        self._pace()
+        try:
+            source_file, source = audio.download(url, work, self._progress(track, 0.1, 0.6),
+                                                 audio.auth_options(settings.load()), is_cancelled)
+        except audio.LoginRequired as exc:
+            if exc.bot:
+                self.youtube_block = time.time()
+                log.warning("YouTube-Sperre (Bot-Schutz) erkannt – restliche Songs werden übersprungen.")
+            raise
+        finally:
+            self._last_download = time.time()
         abr = f"{source['abr']:.0f} kbps" if source.get("abr") else "? kbps"
-        track.source = f"{found} · Quelle {source['codec']} {abr}"
+        track.source = f"{found} · Quelle {source['codec']} {abr}" + (" · mit Anmeldung" if source.get("with_auth") else "")
 
         track.status = "wandelt"
         self.bump()
